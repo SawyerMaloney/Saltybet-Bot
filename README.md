@@ -5,6 +5,7 @@ A bot designed to read salty bet chat and parse through it to find information a
 
 ## Coming
 An ELO system that allows reasonable prediction about who will win a fight.
+
 Actually more pertinant is a parser to find chat message about the fights and then turn that into a reasonable data structure representing the fights themselves. Then from there we can work on making any basic predictions about the fights.
 
 #### Coming Coming
