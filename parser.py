@@ -26,6 +26,10 @@ with open("stripped_output.txt", "w") as f:
 tiers = {"P": 500, "B": 750, "A": 1000, "S": 1250, "X": 1500} # default elo of a character in this tier
 characters = {} # all the character data!
 
+# Accuracy metrics
+trials = 0
+successes = 0
+
 # parse through output and get the names and tiers
 i = 0
 while i < len(output):
@@ -36,8 +40,8 @@ while i < len(output):
         matches = findall(".*vs", text)[0]
         first_character = matches[:len(matches)-3]
         
-        matches = findall("vs .*! \(", text)[0]
-        second_character = matches[3:len(matches)-3]
+        matches = findall(" vs .*! \(", text)[0]
+        second_character = matches[4:len(matches)-3]
 
         matches = findall("\(. Tier\)", text)
         if len(matches) == 1: # we want the match to have a tier for elo reasons
@@ -60,12 +64,20 @@ while i < len(output):
                         characters[second_character] = tiers[tier]
 
                     print(f"elo before: p1: {characters[first_character]}, p2: {characters[second_character]}")
+                    
+                    # =========================== Accuracy testing =============================
+                    expected_winner = 0 if characters[first_character] > characters[second_character] else 1
+                    chars = [first_character, second_character]
+                    if chars[expected_winner] == winner:
+                        successes += 1
+                    trials += 1
+
                     p1, p2 = onevsone(characters[first_character], characters[second_character])
                     # update elo based on who won
                     if winner == first_character:
                         characters[first_character] = p1[0]
                         characters[second_character] = p2[1]
-                    elif winner == first_character:
+                    elif winner == second_character:
                         characters[first_character] = p1[1]
                         characters[second_character] = p2[0]
                     else:
@@ -76,3 +88,5 @@ while i < len(output):
             else:
                 i += 1 # skipping the match result
     i += 1
+
+print(f"trials (matches): {trials}. Number correctly predicted: {successes}")
