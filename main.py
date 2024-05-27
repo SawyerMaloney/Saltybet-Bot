@@ -4,6 +4,7 @@ from twitchAPI.oauth import UserAuthenticator
 from twitchAPI.type import AuthScope
 from twitchAPI.eventsub.websocket import EventSubWebsocket
 from twitchAPI.object.eventsub import ChannelChatMessageEvent
+from datetime import datetime
 
 from dotenv import load_dotenv
 import os
@@ -43,6 +44,9 @@ async def on_message(data: ChannelChatMessageEvent):
     if data["event"]["chatter_user_id"] == "55853880":
         message = data["event"]["message"]["text"]
         # now open file and write 
+        time = datetime.now().strftime("%H:%M:%S")
+        print_message = f"Writing {message} at {time}" 
+        print(print_message)
         with open("output.txt", "a") as f:
             f.write(message + '\n')
 
