@@ -5,6 +5,7 @@ from twitchAPI.type import AuthScope
 from twitchAPI.eventsub.websocket import EventSubWebsocket
 from twitchAPI.object.eventsub import ChannelChatMessageEvent
 from datetime import datetime
+import parser
 
 from dotenv import load_dotenv
 import os
@@ -43,6 +44,22 @@ async def on_message(data: ChannelChatMessageEvent):
 
     if data["event"]["chatter_user_id"] == "55853880":
         message = data["event"]["message"]["text"]
+    
+        # before we write, check if it's "Bets are OPEN" and, if so, print out the elo's of characters
+        if "Bets are OPEN for " in message:
+            first, second, tier = parser.get_match_info(message)
+            # use elo.txt to find characters? Maybe have this run on a timer loop (updating elo.txt from output)
+            characters, appearances = parser.data_from_elo()
+            if first in characters:
+                print(f"{first}: {characters[first]}, appearances: {appearances[first]}")
+            else:
+                print(f"{first} not in characters")
+
+            if second in characters:
+                print(f"{second}: {characters[second]}, appearances: {appearances[second]}")
+            else:
+                print(f"{second} not in characters")
+
         # now open file and write 
         time = datetime.now().strftime("%H:%M:%S")
         print_message = f"Writing {message} at {time}" 

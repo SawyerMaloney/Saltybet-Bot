@@ -6,31 +6,49 @@ from re import findall
 from elo import onevsone
 import math
 
+phrases = ["Bets are OPEN for ", "wins! Payouts to"]
+
+def stripped_output():
+    output = []
+    with open("output.txt", "r") as f:
+        lines = f.readlines()
+        for line in lines:
+            if any([_ in line for _ in phrases]) and "Team A" not in line and "Team B!" not in line:
+                output.append(line.strip())
+
+    return output
+
+def get_match_info(line):
+    text = line[len(phrases[0]):]
+    first = findall(".*vs ", text)[0]
+    first = first[:len(first)-4]
+
+    second = findall(" vs .*! \(", text)[0]
+    second = second[4:len(second) - 3]
+
+    tier = findall("\(. Tier\)", text)
+
+    return (first, second, tier)
+
+def data_from_elo():
+    characters = {}
+    appearances = {}
+    with open("elo.txt", "r") as elo:
+        lines = elo.readlines()
+        for line in lines:
+            line = line.strip().split(",")
+            character = line[0]
+            character_elo = line[1]
+            character_appearances = line[2]
+
+            characters[character] = character_elo
+            appearances[character] = character_appearances
+
+    return (characters, appearances)
+            
+
 def parser():
 
-    phrases = ["Bets are OPEN for ", "wins! Payouts to"]
-
-    def stripped_output():
-        output = []
-        with open("output.txt", "r") as f:
-            lines = f.readlines()
-            for line in lines:
-                if any([_ in line for _ in phrases]) and "Team A" not in line and "Team B!" not in line:
-                    output.append(line.strip())
-
-        return output
-
-    def get_match_info(line):
-        text = line[len(phrases[0]):]
-        first = findall(".*vs ", text)[0]
-        first = first[:len(first)-4]
-
-        second = findall(" vs .*! \(", text)[0]
-        second = second[4:len(second) - 3]
-
-        tier = findall("\(. Tier\)", text)
-
-        return (first, second, tier)
 
     output = stripped_output()
 
