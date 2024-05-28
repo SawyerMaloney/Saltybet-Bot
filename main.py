@@ -81,7 +81,7 @@ async def on_message(data: ChannelChatMessageEvent):
         # now open file and write 
         time = datetime.now().strftime("%H:%M:%S")
         print_message = f"Writing {message} at {time}\n" 
-        with open("log.txt", "w") as log:
+        with open("log.txt", "a") as log:
             log.write(print_message)
         with open("output.txt", "a") as f:
             f.write(message + '\n')
