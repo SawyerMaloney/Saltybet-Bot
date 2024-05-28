@@ -6,6 +6,7 @@ from twitchAPI.eventsub.websocket import EventSubWebsocket
 from twitchAPI.object.eventsub import ChannelChatMessageEvent
 from datetime import datetime
 import parser
+from playsound import playsound
 
 from dotenv import load_dotenv
 import os
@@ -60,11 +61,18 @@ async def on_message(data: ChannelChatMessageEvent):
             else:
                 print(f"\033[0;34m{second}\033[0m not in characters")
 
+            if first in characters and second in characters:
+                playsound("ding.mp3")
+
         # now open file and write 
         time = datetime.now().strftime("%H:%M:%S")
-        print_message = f"Writing {message} at {time}" 
-        print(print_message)
+        print_message = f"Writing {message} at {time}\n" 
+        with open("log.txt", "w") as log:
+            log.write(print_message)
         with open("output.txt", "a") as f:
             f.write(message + '\n')
+
+        # run parser to update
+        parser.parse()
 
 asyncio.run(run())

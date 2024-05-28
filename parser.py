@@ -47,9 +47,7 @@ def data_from_elo():
     return (characters, appearances)
             
 
-def parser():
-
-
+def parse():
     output = stripped_output()
 
     with open("stripped_output.txt", "w") as f:
@@ -97,7 +95,6 @@ def parser():
 
                     # need to check that both characters have records, since we are counting exhibs now
                     if first_character not in characters or second_character not in characters:
-                        print(f"Quitting because {first_character if first_character not in characters else second_character} not in characters (exhibition)")
                         i += 1
                         continue
 
@@ -114,8 +111,6 @@ def parser():
                         characters[first_character] = p1[1]
                         characters[second_character] = p2[0]
 
-                    else:
-                        print(f"Error with finding winner. p1: {first_character}, p2: {second_character}, winner: {winner}")
                 # else:
                     # incomplete log or other issue, we just will skip
         i += 1
@@ -140,7 +135,6 @@ def parser():
                 winner = matches[:len(matches) - 18]
 
             if winner == "":
-                print(f"Error finding winner, {line}")
                 i += 1
                 continue
 
@@ -155,11 +149,17 @@ def parser():
             total += 1
         i += 1
 
+    # write to elo.txt LOL
+    with open("elo.txt", "w") as f:
+        for char in characters.keys():
+            write_string = f"{char}, {characters[char]}, {appearances[char]}\n"
+            f.write(write_string)
+
     return (num_correct, total, characters, appearances)
 
 
 if __name__ == "__main__":
-    num_correct, total, characters, appearances = parser()
+    num_correct, total, characters, appearances = parse()
     print(f"Total correct: {num_correct}; total: {total}; Percentage: {num_correct / total}")
     max_app = 0
     max_char = ""
@@ -167,7 +167,7 @@ if __name__ == "__main__":
         if appearances[char] > max_app:
             max_app = appearances[char]
             max_char = char
-    print(f"Max appearances: {max_app} on char {max_char}")
+    print(f"Max appearances: {max_app} on character {max_char}")
     print(f"Number of characters: {len(characters.keys())}")
 
     characters_with_more_than_one_appearance = 0
