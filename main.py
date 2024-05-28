@@ -7,6 +7,7 @@ from twitchAPI.object.eventsub import ChannelChatMessageEvent
 from datetime import datetime
 import parser
 from playsound import playsound
+from re import findall
 
 from dotenv import load_dotenv
 import os
@@ -40,6 +41,7 @@ async def run():
         await eventsub.stop()
         await twitch.close()
 
+chars = ["", ""]
 async def on_message(data: ChannelChatMessageEvent):
     data = data.to_dict()
 
@@ -49,6 +51,8 @@ async def on_message(data: ChannelChatMessageEvent):
         # before we write, check if it's "Bets are OPEN" and, if so, print out the elo's of characters
         if "Bets are OPEN for " in message:
             first, second, tier = parser.get_match_info(message)
+            chars[0] = first
+            chars[1] = second
             # use elo.txt to find characters? Maybe have this run on a timer loop (updating elo.txt from output)
             characters, appearances = parser.data_from_elo()
             if first in characters:
@@ -63,6 +67,16 @@ async def on_message(data: ChannelChatMessageEvent):
 
             if first in characters and second in characters:
                 playsound("ding.mp3")
+
+        if "wins! Payouts to " in message:
+            # win message
+            match = findall(".*wins! Payouts to ", message)[0]
+            winner = match[:len(match) - 18]
+            if winner == chars[0]:
+                print(f"\033[0;31m{chars[0]}\033[0m wins!")
+            elif winner == chars[1]:
+                print(f"\033[0;34m{chars[1]}\033[0m wins!")
+            print("\n") # make some space in the output
 
         # now open file and write 
         time = datetime.now().strftime("%H:%M:%S")
