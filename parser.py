@@ -5,6 +5,8 @@
 from re import findall
 from elo import onevsone
 import math
+import networkx as nx
+import matplotlib.pyplot as plt
 
 phrases = ["Bets are OPEN for ", "wins! Payouts to"]
 
@@ -198,7 +200,7 @@ if __name__ == "__main__":
 
     # calculate connected components
     v = {}
-    components = 0
+    components = []
     for key in characters.keys():
         v[key] = ([], 0)
 
@@ -209,18 +211,36 @@ if __name__ == "__main__":
 
     while are_unvisited(v):
         # at the top of this function we are finding another connected component
-        components += 1
+        component = []
         source = find_source(v)
         queue = [source]
+        component.append(source)
         v[source] = (v[source][0], 1)
         while len(queue) != 0:
             i = queue.pop(0) # pop and set as visited
+            component.append(i)
             # append all connected edges
             for edge in v[i][0]:
                 if v[edge][1] != 1: # hasn't already been visited
                     queue.append(edge)
                     v[edge] = (v[edge][0], 1)
-    print(f"Number of connected components: {components}")
+        components.append(component)
+    print(f"Number of connected components: {len(components)}")
+    largest_component = max([len(_) for _ in components])
+    print(f"The largest connected component is: {largest_component}")
+
+    component_lengths = [len(_) for _ in components]
+    component_lengths.sort(reverse=True)
+    print(f"Top 10 largest components: {component_lengths[:10]}")
+
+    G = nx.Graph()
+    G.add_nodes_from(characters.keys())
+    for edge in edges:
+        G.add_edge(edge[0], edge[1])
+
+    # nx.draw(G, with_labels=True, font_weight='bold') 
+    # plt.show()
+
 
 
 
