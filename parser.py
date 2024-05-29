@@ -48,6 +48,10 @@ def data_from_elo():
             
 
 def parse():
+    red_wins = 0
+    blue_wins = 0
+
+
     output = stripped_output()
 
     with open("stripped_output.txt", "w") as f:
@@ -59,6 +63,7 @@ def parse():
 
     characters = {} # all the character data!
     appearances = {} # counting how many times we've seen them
+    edges = [] # list of [first, second], which is all matches played
 
 
 # parse through output and get the names and tiers
@@ -105,11 +110,14 @@ def parse():
                     p1, p2 = onevsone(characters[first_character], characters[second_character])
                     # update elo based on who won
                     if winner == first_character:
+                        red_wins += 1
                         characters[first_character] = p1[0]
                         characters[second_character] = p2[1]
                     elif winner == second_character:
+                        blue_wins += 1
                         characters[first_character] = p1[1]
                         characters[second_character] = p2[0]
+                    edges.append([first_character, second_character])
 
                 # else:
                     # incomplete log or other issue, we just will skip
@@ -155,11 +163,21 @@ def parse():
             write_string = f"{char}, {characters[char]}, {appearances[char]}\n"
             f.write(write_string)
 
-    return (num_correct, total, characters, appearances)
+    return (num_correct, total, characters, appearances, edges, red_wins, blue_wins)
 
+def are_unvisited(v):
+    for _ in v.keys():
+        if v[_][1] == 0:
+            return True
+    return False
+
+def find_source(v):
+    for _ in v.keys():
+        if v[_][1] == 0:
+            return _
 
 if __name__ == "__main__":
-    num_correct, total, characters, appearances = parse()
+    num_correct, total, characters, appearances, edges, red_wins, blue_wins = parse()
     print(f"Total correct: {num_correct}; total: {total}; Percentage: {num_correct / total}")
     max_app = 0
     max_char = ""
@@ -176,3 +194,50 @@ if __name__ == "__main__":
             characters_with_more_than_one_appearance += 1
 
     print(f"Number of characters with more than one appearance: {characters_with_more_than_one_appearance}")
+    print(f"Number of red wins: {red_wins}; number of blue wins: {blue_wins}")
+
+    # calculate connected components
+    v = {}
+    components = 0
+    for key in characters.keys():
+        v[key] = ([], 0)
+
+    # set up the edges
+    for edge in edges:
+        v[edge[0]][0].append(edge[1])
+        v[edge[1]][0].append(edge[0]) 
+
+    while are_unvisited(v):
+        # at the top of this function we are finding another connected component
+        components += 1
+        source = find_source(v)
+        queue = [source]
+        v[source] = (v[source][0], 1)
+        while len(queue) != 0:
+            i = queue.pop(0) # pop and set as visited
+            # append all connected edges
+            for edge in v[i][0]:
+                if v[edge][1] != 1: # hasn't already been visited
+                    queue.append(edge)
+                    v[edge] = (v[edge][0], 1)
+    print(f"Number of connected components: {components}")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
