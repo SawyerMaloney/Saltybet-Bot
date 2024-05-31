@@ -240,24 +240,3 @@ if __name__ == "__main__":
 
     # nx.draw(G, with_labels=True, font_weight='bold') 
     # plt.show()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

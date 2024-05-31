@@ -1,0 +1,16 @@
+Total correct: 2144; total: 2267; Percentage: 0.9457432730480811
+Max appearances: 33 on character Katakura kojuro
+Number of characters: 3169
+Number of characters with more than one appearance: 883
+Number of red wins: 1071; number of blue wins: 1189
+Number of connected components: 928
+The largest connected component is: 317
+Top 10 largest components: [317, 280, 119, 40, 20, 18, 18, 17, 15, 13]
+Total correct: 2307; total: 2448; Percentage: 0.9424019607843137
+Max appearances: 33 on character Katakura kojuro
+Number of characters: 3340
+Number of characters with more than one appearance: 996
+Number of red wins: 1151; number of blue wins: 1288
+Number of connected components: 933
+The largest connected component is: 396
+Top 10 largest components: [396, 290, 147, 21, 21, 19, 17, 15, 13, 13]
