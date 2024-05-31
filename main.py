@@ -65,8 +65,8 @@ async def on_message(data: ChannelChatMessageEvent):
             else:
                 print(f"\033[0;34m{second}\033[0m not in characters")
 
-            if first in characters and second in characters:
-                playsound("ding.mp3")
+            # if first in characters and second in characters:
+                # playsound("ding.mp3")
 
         if "wins! Payouts to " in message:
             # win message
