@@ -62,3 +62,11 @@ Number of red wins: 1612; number of blue wins: 1769
 Number of connected components: 888
 The largest connected component is: 1533
 Top 10 largest components: [1533, 226, 15, 14, 14, 13, 13, 12, 11, 11]
+Total correct: 3389; total: 3653; Percentage: 0.9277306323569668
+Max appearances: 39 on character Katakura kojuro
+Number of characters: 4354
+Number of characters with more than one appearance: 1756
+Number of red wins: 1757; number of blue wins: 1880
+Number of connected components: 869
+The largest connected component is: 1933
+Top 10 largest components: [1933, 18, 15, 15, 15, 14, 13, 13, 13, 12]
