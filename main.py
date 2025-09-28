@@ -56,12 +56,12 @@ async def on_message(data: ChannelChatMessageEvent):
             # use elo.txt to find characters? Maybe have this run on a timer loop (updating elo.txt from output)
             characters, appearances = parser.data_from_elo()
             if first in characters:
-                print(f"\033[0;31m{first}:\033[0m {characters[first]}, appearances: {appearances[first]}")
+                print(f"\033[0;31m{first}:\033[0m {float(characters[first]):.2f}, appearances: {appearances[first]}")
             else:
                 print(f"\033[0;31m{first}\033[0m not in characters")
 
             if second in characters:
-                print(f"\033[0;34m{second}:\033[0m {characters[second]}, appearances: {appearances[second]}")
+                print(f"\033[0;34m{second}:\033[0m {float(characters[second]):.2f}, appearances: {appearances[second]}")
             else:
                 print(f"\033[0;34m{second}\033[0m not in characters")
 
