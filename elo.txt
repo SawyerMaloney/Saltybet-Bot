@@ -286,7 +286,7 @@ Zenryoku, 284.0, 1
 Mizuki rashoujin, 429.7967720599314, 2
 Flygon, 282.9886151866047, 5
 Gradriel, 331.263693206478, 2
-Asuka EX2, 255.15858955163014, 5
+Asuka EX2, 272.4837430915647, 6
 Toy, 314.5875234450929, 3
 Syanahime, 318.14678208647024, 5
 Alien, 315.395583426306, 3
@@ -711,7 +711,7 @@ Rotom, 168.09640129362222, 4
 Devilch, 168.0, 2
 Increase irisu, 531.9661669788793, 2
 Old school megaman, 216.0, 1
-Ganjou dan, 186.13826584799102, 3
+Ganjou dan, 186.13826584799102, 4
 A-kaigen, 399.263693206478, 2
 K.chris, 384.0, 1
 Asutorea EX3, 316.0, 1
@@ -4341,7 +4341,7 @@ Doctor strange, 200.736306793522, 2
 Hyouken, 384.7024671725246, 1
 Clark steel, 116.0, 1
 Peter, 84.0, 1
-Yukina himeragi, 316.0, 1
+Yukina himeragi, 331.263693206478, 2
 Mars people EX3, 284.0, 1
 Kana isolde as, 316.736306793522, 1
 Sonya, 268.0015544510898, 2
@@ -5312,7 +5312,7 @@ Hol 'butt king' funtimes, 84.0, 1
 Drew, 116.0, 1
 Bean, 84.0, 1
 Master rozwel, 516.0, 1
-True saiki, 484.0, 1
+True saiki, 500.736306793522, 2
 Cci kim, 216.14878869276512, 1
 Iceman SP, 184.0, 1
 Rufus ssf4, 216.0, 1
@@ -5464,7 +5464,7 @@ Donaemon-type-d, 516.0, 1
 Joymech katima, 484.0, 1
 Cody_a, 184.0, 1
 Mephiles the dark, 216.0, 1
-Cyber smoke umk3, 284.0, 1
+Cyber smoke umk3, 266.67484646006545, 2
 Mr.mannequin, 299.42219093214845, 2
 Clawbear, 284.0, 1
 W.krauser, 281.45592078795, 5
@@ -5654,7 +5654,7 @@ Aska EX2, 316.0014896161166, 1
 Jurarus, 288.5058971726728, 1
 Prishe, 416.70408772171834, 1
 Kouma kishima iqs, 384.7024671725246, 1
-Samus aran ax, 217.43587287827629, 1
+Samus aran ax, 217.43587287827629, 2
 G-impact, 382.59806283763595, 1
 Gogeta ssj4 evolution by franciynaldo, 215.263693206478, 1
 Akashima, 416.6058285235504, 1
@@ -5823,3 +5823,5 @@ Rekka, 484.0, 1
 Transaction gustab, 516.0, 1
 Iron man -mgmx-, 283.2975328274754, 1
 Shin donovan, 415.3006326346421, 1
+Black swordsman, 483.263693206478, 1
+Nyu, 284.736306793522, 1
