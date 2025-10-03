@@ -9,7 +9,7 @@ Ken svc chaos, 368.0, 2
 Rinnosuke morichika, 216.0, 1
 Super buu z2, 184.0, 1
 The batman, 213.8278203282017, 3
-Sf2 sean, 184.0, 1
+Sf2 sean, 168.736306793522, 2
 Queen chrysalis, 169.46950152897548, 2
 Bsb samus, 234.4880154070272, 4
 The grim reaper, 200.0, 2
@@ -136,7 +136,7 @@ Insect, 339.60352890036745, 4
 Feldenkrais, 484.0, 1
 Ryousan gata patchouli, 513.8278203282017, 3
 Sasuke kun, 431.263693206478, 2
-Mack, 386.32464342170556, 3
+Mack, 370.95409183619216, 4
 Matunaga yukari, 368.736306793522, 2
 Regular ass chizuru, 414.65834353458536, 5
 Dhalsim vp, 316.0, 1
@@ -323,7 +323,7 @@ Gi gi, 234.93846729034107, 4
 Venom GG, 327.8462973328566, 4
 Earthquake, 213.76473540090524, 3
 Remy sf3, 185.43877396604665, 3
-Alex sf3, 284.67005205358953, 3
+Alex sf3, 299.93374526006755, 4
 Arrange_ayu, 434.0156092661583, 4
 Lf2 - firen, 313.1930578294337, 3
 Tvc alex, 299.93381676529015, 4
@@ -460,7 +460,7 @@ Apocalypse, 413.8278203282017, 3
 Hata no kokoro ulil, 301.8283267779123, 6
 Retro suika, 331.263693206478, 2
 Kurokishi, 340.97829713904156, 5
-Uncle saizo, 270.1632457797655, 2
+Uncle saizo, 254.86464839418136, 3
 Kliff, 368.736306793522, 2
 Zonuda, 430.53049847102454, 2
 Yuki kameoka, 184.0, 1
@@ -488,7 +488,7 @@ Fordy, 299.10806026576927, 2
 Fordy-z, 300.5194774817266, 2
 Broli, 417.4358728782763, 1
 Diabolic blackheart, 425.33412083428163, 6
-Chief he-fonba, 268.67005205358953, 4
+Chief he-fonba, 253.40635884711153, 5
 Phantomsheet, 315.29760133664723, 3
 Forte.exe, 232.03234660307297, 2
 Erdrick, the generic anime swordsman, 416.032274952924, 3
@@ -537,7 +537,7 @@ Judith_odea_akof, 313.79419167750257, 3
 Lenalee-mvc EX3, 252.70246717252465, 3
 Kibanohara ethica, 240.36515532120706, 4
 Darthvader, 310.4552388186477, 5
-Misty, 316.0, 1
+Misty, 297.18089017332096, 2
 Lunasa, 284.0057862893775, 3
 Another igniz, 401.4387739660466, 2
 Gouki-kofm, 328.6509116950587, 6
@@ -546,7 +546,7 @@ Zangeese, 316.0, 1
 Alucks, 317.5047585474696, 3
 Kyouko, 68.73630679352199, 2
 Enja, 116.0, 1
-Marcia, 254.138265847991, 3
+Marcia, 272.95737567467006, 4
 Maria EX2, 331.263693206478, 2
 Bokosuka wars, 325.19407646404557, 5
 Angelg, 289.034598973966, 5
@@ -606,7 +606,7 @@ Hyper_onslaught, 516.0, 1
 Werdna EX7, 484.0, 1
 Goku black ssr, 371.52103442244214, 2
 Lasher, 332.0, 2
-Ff mai shiranui, 268.736306793522, 2
+Ff mai shiranui, 294.59272076777427, 5
 Resonance, 434.0103442691978, 4
 Smoke mk2, 279.8983310567517, 3
 Bad rorschach, 284.0, 1
@@ -663,7 +663,7 @@ Playstation 2 diavolo, 270.86479135115064, 2
 Remilya scarlet, 315.3327200101348, 3
 Small Ryu, 316.0, 1
 Goku-hell, 419.2914305086379, 5
-Deathtanz-mantisk, 365.42738397493895, 4
+Deathtanz-mantisk, 350.28187078598586, 5
 Kizaru borsalino, 231.263693206478, 2
 American ninja, 184.0, 1
 T-chipp, 516.0, 1
@@ -861,14 +861,14 @@ Glacial_girl, 384.0, 1
 Rozwel, 399.2257456328407, 4
 Fire quacker, 399.3621185562534, 2
 Bobby drake, 369.375683569253, 2
-Broadway, 273.16758319344723, 4
+Broadway, 263.3417961139256, 5
 Fake kaede, 359.0415815587063, 4
-Grandmaster meio, 384.0, 1
+Grandmaster meio, 368.06612401323736, 2
 Anubis polnareff, 416.0, 1
 Great saiyaman, 84.0, 1
 Majin vegeta z2, 116.0, 1
 Skullman, 430.53049847102454, 2
-Shiho munakata, 368.736306793522, 2
+Shiho munakata, 387.58510933022217, 3
 Kill bill gogo, 168.736306793522, 4
 Iori yagami 96, 184.0, 1
 Go_shin, 184.0, 1
@@ -999,7 +999,7 @@ Tetsuo k9999, 384.736306793522, 1
 Goblin, 200.736306793522, 2
 Rushim, 199.263693206478, 2
 Cless ndx, 401.50311709120615, 2
-Demon king dhaos, 431.263693206478, 2
+Demon king dhaos, 445.10071231697907, 3
 Remilia scarlet, 316.0, 1
 Donkeykongjr EX, 283.1351699220297, 8
 Pacman, 168.03383302112073, 2
@@ -1117,7 +1117,7 @@ Akiha EX, 316.70239866335277, 3
 Meta knight ssbb, 298.53049847102454, 2
 Mizukami hokuto, 300.736306793522, 2
 Mini zeroko, 281.92919581510665, 5
-Donald mcdonald, 216.0, 1
+Donald mcdonald, 229.1898026364316, 4
 Deathstroke, 184.0, 1
 The man of steel, 216.0, 1
 Earthworm jim, 184.0, 1
@@ -1332,7 +1332,7 @@ Kane, 227.02088958876587, 6
 Carl clover, 169.33218735598518, 4
 Dynamite headdy, 200.0, 2
 Blankagirl, 201.46950152897548, 2
-Vanessa, 232.0, 4
+Vanessa, 214.53049847102452, 5
 Lady bow, 200.0, 2
 Cyber-woo, 200.0, 2
 Sesame, 231.263693206478, 4
@@ -1446,7 +1446,7 @@ Acguy, 284.0, 1
 Unicorn jabu, 183.263693206478, 1
 Warakia, 286.87030011044124, 3
 Mvc2 riesbyfe, 331.263693206478, 2
-Upset chieshen, 316.0, 1
+Upset chieshen, 299.9660918698308, 2
 Satsuki shindou, 284.0, 1
 Axl, 385.23782218853745, 3
 Anita msh, 447.16934266191583, 3
@@ -1478,7 +1478,7 @@ Hisui aa, 384.0616530799529, 8
 Unlaughmaker, 284.0, 1
 Oswald, 233.76506518382854, 4
 Hitsugaya, 301.25875881482216, 2
-Hibiki takane, 416.0, 1
+Hibiki takane, 412.41489066977783, 3
 Super mario EX3, 368.77013981464273, 2
 Asuna, 327.96790775167807, 2
 Theskiver, 368.736306793522, 2
@@ -1899,7 +1899,7 @@ Ruby heart EX3, 84.0, 1
 Janne d'arc, 300.06611787322186, 2
 Charles, 216.0, 1
 Nightmare buzz, 149.16491965460364, 6
-Shadow labrys, 416.736306793522, 1
+Shadow labrys, 429.34891818162345, 2
 Arisa, 316.0, 1
 General, 266.3661354497701, 4
 Litchi qyc, 399.3300259987601, 4
@@ -2080,7 +2080,7 @@ Vile, 231.96616697887927, 2
 Orochi akuma, 348.6028583741339, 3
 Saionzi sekai, 316.0, 1
 Oda nobunaga EX, 285.47749247202734, 3
-Jean grey, 315.263693206478, 1
+Jean grey, 331.29760133664723, 2
 Ultron is, 415.3018648518697, 5
 Tuna, 170.1721796717983, 2
 Mewtwo-y, 388.2619443323227, 3
@@ -2600,7 +2600,7 @@ Blues hablam, 269.46950152897546, 2
 Sagojo, 116.0, 1
 Frank archer, 84.0, 1
 Foxy-kofm, 297.9183116367743, 2
-Grande mestre, 184.0, 1
+Grande mestre, 168.736306793522, 2
 Mr.big EX3, 216.0, 1
 Rouwe EX3, 368.736306793522, 2
 Kumagawa misogi, 432.0, 2
@@ -2774,7 +2774,7 @@ Asuka tmnt remix, 313.8021570988272, 3
 Nakoruru EX3, 284.0, 1
 Warlock, 360.5243738016654, 4
 Kaeru(chrono), 300.70239866335277, 2
-Yashiro 98, 285.3661793993872, 3
+Yashiro 98, 269.30326483726174, 4
 Adelheid xiii, 284.7024671725246, 1
 Yuka, 367.11659386553436, 2
 Goku-kofm, 431.263693206478, 2
@@ -2932,7 +2932,7 @@ Gambit MVC2, 315.8759513052559, 3
 Roll.exe av, 373.70212831008445, 4
 Cyber dan, 199.263693206478, 2
 Battousai, 168.736306793522, 2
-Sengoku manjimaru, 431.2331897023158, 2
+Sengoku manjimaru, 447.26404490231664, 3
 Demigod meep140, 413.8910491357761, 3
 Zangeese EX2, 183.22986018535727, 1
 Chen-mao, 184.0, 1
@@ -3023,7 +3023,7 @@ Nucrear cirno EX, 429.8293217649874, 2
 Knyacki, 284.736306793522, 1
 Evangelion, 268.3733769431454, 2
 Dachon, 298.02041375603545, 2
-Human kazuya, 342.0505864294195, 4
+Human kazuya, 329.43797504131805, 5
 Kokesz, 284.0339081301692, 1
 Marisa kirisame, 416.0, 1
 Lit ren, 370.75607938897195, 2
@@ -3377,7 +3377,7 @@ Tapper, 286.1721796717983, 3
 Yatenkou, 215.263693206478, 1
 Ssfiix' rainbow, 285.4460861003141, 3
 Lucifer EX, 285.37215561444305, 3
-Nokia 3310, 415.263693206478, 1
+Nokia 3310, 402.388455091445, 2
 Goku gt, 216.0, 1
 Miyabi, 427.28713521671045, 6
 Faust, 413.12812482261853, 3
@@ -3416,7 +3416,7 @@ Eleking, 381.8971416622428, 3
 Clippy, 316.736306793522, 1
 Kotiya sanae, 316.0, 1
 Mei, 284.0, 1
-Eve b.c, 285.40377782328915, 1
+Eve b.c, 300.70237520887326, 2
 Stg-okura, 468.736306793522, 2
 Grand master krauser, 531.263693206478, 2
 Kooper, 199.263693206478, 2
@@ -3526,7 +3526,7 @@ Rhino eoh, 184.0, 1
 Chip's challenge, 283.2975328274754, 1
 Final peketo, 384.1629420210758, 1
 Android 16 ub22, 492.6723958747303, 8
-Komepo, 298.5639935216946, 2
+Komepo, 284.0293653681069, 3
 Arrange_shiori, 403.5794397012483, 4
 Ironfist ryu, 287.0536821860636, 3
 Shura, 216.0, 1
@@ -3558,7 +3558,7 @@ Reak.f, 284.0, 1
 Orochi fire chris, 268.03383302112076, 2
 Chester stoddart, 284.7024671725246, 1
 Hakureimu, 384.0324183678368, 1
-Robert garcia EX2, 413.13379844709783, 3
+Robert garcia EX2, 428.52925261453936, 4
 Z.e.r.o of n.e.s.t.s, 431.23444550341543, 4
 Cheng sinzan rb2, 315.263693206478, 1
 Fenice, 83.26369320647801, 1
@@ -3611,7 +3611,7 @@ Dragon EX, 416.1336912140381, 7
 Toatus, 354.1721796717983, 3
 Hugo 02um, 284.0, 1
 Rid hershel, 344.4661601328877, 3
-Shin valdoll, 384.0, 1
+Shin valdoll, 400.0676141818485, 2
 Nineball-seraph, 415.29760133664723, 3
 God akuma, 384.0, 1
 Anisama, 416.0, 1
@@ -3625,7 +3625,7 @@ George, 306.8301731896911, 3
 Kamen rider kiva, 268.0, 2
 Luna papa, 299.20249338573916, 2
 Orie valadier, 462.8046786440043, 4
-Omega zero svc chaos, 384.00585910936644, 3
+Omega zero svc chaos, 370.1688399988654, 4
 Ex rumia, 383.6599321708808, 3
 Omega_rugal EX, 429.1834548288035, 2
 Chara ge, 400.0, 2
@@ -3658,7 +3658,7 @@ Nests-rugal, 435.88325523926966, 5
 Hamakaze, 284.7685818980626, 1
 Zantetsu ex, 331.263693206478, 2
 Asutorea, 284.0, 1
-Dinosaur, 330.473557895104, 2
+Dinosaur, 345.00818604869175, 3
 Ex apollo, 233.40492804729362, 2
 Kaede kasiwagi, 373.12647310591285, 4
 Voltorb, 384.736306793522, 1
@@ -4071,7 +4071,7 @@ Ryumaou, 286.6066405241813, 1
 Garou terry, 414.597626351594, 1
 K_saber, 317.79500188337823, 3
 Tsubasa, 302.1372872846334, 2
-Lehyu EX3, 316.0, 1
+Lehyu EX3, 299.93387598676264, 2
 G akiha nightmare, 417.4039133548745, 1
 Dormammu-r, 418.6775077426527, 5
 Nonon jakuzure, 383.9660918698308, 1
@@ -4248,7 +4248,7 @@ Iceclimber, 184.0, 1
 Ness, 315.2329042877296, 1
 Sanji 13, 216.736306793522, 1
 The grandmapocalypse, 430.5276423885159, 2
-Mukai-kofm, 385.4682320437543, 3
+Mukai-kofm, 369.4006178619058, 4
 Earthquake svc, 270.130088718727, 2
 Beryl benito, 301.4052573528856, 2
 Perfect storm x, 268.70239866335277, 2
@@ -4415,7 +4415,7 @@ Shermie as, 330.53049847102454, 2
 Bs agumon, 284.0, 1
 Rokudo k., 516.736306793522, 1
 Real zeroko, 368.0985298444731, 4
-Rascalex, 431.9032026878107, 2
+Rascalex, 415.87234748780986, 3
 Hugo andore jr., 216.0, 1
 Ryoko EX, 184.0, 1
 Pinocchio skinfaxi, 331.263693206478, 2
@@ -4453,7 +4453,7 @@ Nakoruru ex EX3, 385.40377782328915, 1
 Meta jade, 416.736306793522, 1
 Ultraman_a, 216.0, 1
 The nightmare, 184.0, 1
-Aoko, 226.37962239780754, 4
+Aoko, 241.16712495519823, 5
 Lobo, 217.30852858520478, 3
 Mango sentinel, 416.0, 1
 Gale, 371.7703723900591, 4
@@ -4662,7 +4662,7 @@ Mizuki EX2, 282.597626351594, 1
 Gemini, 116.0, 1
 Captain kuro, 84.0, 1
 Sokaku mochizuki rb2, 400.7024671725246, 2
-Miyako arima iqs, 432.7024671725246, 2
+Miyako arima iqs, 415.2008947139702, 3
 Takaragiko, 284.7393515806274, 1
 Asuka kazama, 184.0, 1
 Possessed heita, 216.0, 1
@@ -4731,7 +4731,7 @@ Bob sagat, 316.6481211300983, 1
 Pocket kefla, 284.7347520179792, 1
 Dr. doom mvc3, 284.736306793522, 1
 Order-ky, 416.0, 1
-Aztec toki, 384.0, 1
+Aztec toki, 399.1455131889531, 2
 Private, 168.03383302112073, 2
 Swole shovel knight, 283.2975328274754, 1
 Signum, 184.0, 1
@@ -5407,7 +5407,7 @@ Shar-makai EX3, 315.263693206478, 1
 Gyarados, 385.46346752763117, 1
 Masked rider agito EX3, 216.0, 1
 Jeice, 184.0, 1
-Charlotte(sd3), 284.0, 1
+Charlotte(sd3), 300.06291456212546, 2
 Hoihoi, 316.0, 1
 Solo, 313.996502316397, 1
 Dizzy wsl, 316.0, 1
@@ -5424,7 +5424,7 @@ God kishima, 531.263693206478, 2
 Satuki cvs, 299.3298231018227, 2
 Ironfist chinmi, 330.4634932137531, 2
 Maxmilian, 216.0, 1
-Orochi vega, 184.0, 1
+Orochi vega, 168.736306793522, 2
 H_gate_0350, 315.99397442783425, 3
 Neinhalt sieger, 284.0, 1
 Cueca, 334.5580845216164, 4
@@ -5592,7 +5592,7 @@ Yagumo og, 284.0, 1
 Chonshu, 83.26369320647801, 1
 Blob, 316.0, 1
 Aoi_amatu, 416.736306793522, 1
-Gen shougo, 314.5641271217237, 1
+Gen shougo, 330.63025113496104, 2
 Natasha, 383.263693206478, 1
 Orchid, 216.0, 1
 Duo lon, 184.0, 1
@@ -5600,7 +5600,7 @@ Sailor mercury EX2, 184.0, 1
 Rugal, 216.0, 1
 J lance, 284.06320089649245, 1
 Rim silveria, 297.3998589271674, 2
-Farmer strikes back, 297.6588023698012, 2
+Farmer strikes back, 322.93461353734267, 3
 Shenlong, 283.2297885932591, 1
 Sanada yukimura_ch, 384.0, 1
 Trapsatoko, 416.0, 1
@@ -5700,12 +5700,12 @@ C-kyon, 484.0, 1
 V2ab, 316.7024671725246, 1
 Sai-en1, 84.0, 1
 Oshawott, 116.0, 1
-Akiha tohno EX, 414.55992897337705, 1
+Akiha tohno EX, 424.38571605289866, 2
 Centaur man, 184.736306793522, 1
 D4?roll?, 416.0, 1
 Decarabia, 384.0, 1
 Biollente, 316.736306793522, 1
-Scarlet devil, 385.4358728782763, 1
+Scarlet devil, 401.369748865039, 2
 Gelonimon, 431.9778153751338, 2
 Addict eyes tohno, 484.736306793522, 1
 Vegeta, 184.77013981464273, 1
@@ -5823,5 +5823,31 @@ Rekka, 484.0, 1
 Transaction gustab, 516.0, 1
 Iron man -mgmx-, 283.2975328274754, 1
 Shin donovan, 415.3006326346421, 1
-Black swordsman, 483.263693206478, 1
+Black swordsman, 467.89020751186655, 2
 Nyu, 284.736306793522, 1
+Tarochan, 184.736306793522, 1
+Bob-ko, 199.29760133664718, 2
+Super girl, 184.0, 1
+Aussie kano, 248.60410956160092, 4
+Clayface, 202.2825173472587, 2
+Warachia, 187.124761884967, 1
+El stinger, 185.43587287827629, 1
+Op.element kyo, 516.0, 1
+C.iori blood, 484.0, 1
+Rocky kong, 486.29813157222077, 6
+Regisseur, 516.0, 1
+Dekinaiko-santa, 484.56384099874117, 1
+Kanji tatsumi, 384.736306793522, 1
+Kenshiro 64, 516.1109400711412, 1
+Panter-flauclaws, 417.50157245855445, 1
+Cell SS, 116.0, 1
+Guntank, 84.0, 1
+Goenitz EX3, 384.6045458325585, 1
+Agrias, 415.3705515855134, 1
+Strawbelly jam, 185.2124974426093, 1
+Setsuna, 216.0, 1
+Kaisensei ken, 184.0, 1
+Reptos, 216.0, 1
+Ryu NXC, 184.0, 1
+Dream madotsuki, 217.46950152897548, 1
+Glaugan the lion, 215.263693206478, 1
