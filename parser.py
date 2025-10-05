@@ -12,7 +12,7 @@ phrases = ["Bets are OPEN for ", "wins! Payouts to"]
 
 def stripped_output():
     output = []
-    with open("output.txt", "r") as f:
+    with open("output.txt", "r", encoding="utf-8") as f:
         lines = f.readlines()
         for line in lines:
             if any([_ in line for _ in phrases]) and "Team A" not in line and "Team B!" not in line:
@@ -25,10 +25,10 @@ def get_match_info(line):
     first = findall(".*vs ", text)[0]
     first = first[:len(first)-4]
 
-    second = findall(" vs .*! \(", text)[0]
+    second = findall(r" vs .*! \(", text)[0]
     second = second[4:len(second) - 3]
 
-    tier = findall("\(. Tier\)", text)
+    tier = findall(r"\(. Tier\)", text)
 
     return (first, second, tier)
 
@@ -52,7 +52,6 @@ def data_from_elo():
 def parse():
     red_wins = 0
     blue_wins = 0
-
 
     output = stripped_output()
 
