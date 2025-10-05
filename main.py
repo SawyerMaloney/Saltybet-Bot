@@ -6,7 +6,6 @@ from twitchAPI.eventsub.websocket import EventSubWebsocket
 from twitchAPI.object.eventsub import ChannelChatMessageEvent
 from datetime import datetime
 import parser
-from playsound import playsound
 from re import findall
 
 from dotenv import load_dotenv
