@@ -532,7 +532,7 @@ def main() -> int:
     p2.add_argument("--to-id", type=int); p2.add_argument("--pace", type=float, default=0.2)
 
     p3 = sub.add_parser("analyze"); p3.add_argument("--live-only", action="store_true")
-    p4 = sub.add_parser("bias")
+    sub.add_parser("bias")
     p5 = sub.add_parser("strategy-c")
     p5.add_argument("--live-only", action="store_true")
     p5.add_argument("--train-frac", type=float, default=0.6)

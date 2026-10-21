@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-m_signal.py -- Initial investigation: what predicts the market's implied price m?
+market_model.py -- what predicts the market's implied price m?
 
 m = the crowd's final implied P(red wins) = bet_red/(bet_red+bet_blue).
 We build CAUSAL (pre-match only) features over the full 665k match history and
@@ -122,7 +122,6 @@ def main():
     for tid, pr, pb, prov in con.execute(
         "SELECT id, p_red, p_blue, provenance FROM track WHERE p_red IS NOT NULL"):
         trows[tid] = pr / 100.0
-    ids = [r[0] for r in con.execute("SELECT id FROM boy ORDER BY date")]
     # rebuild feats with ids
     rows = con.execute(
         "SELECT id, date, bet_red, bet_blue, winner, fighter_red, fighter_blue, tier, match_format "

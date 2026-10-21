@@ -1,103 +1,60 @@
 #!/usr/bin/env python3
 """
-cli.py -- interactive menu for the SaltyBet bot.
+cli.py -- the command-line surface for the SaltyBet bot.
 
-Run with no arguments:  python3 src/bot.py
+Owns everything CLI-shaped: argument parsing, the interactive menu, and the
+wiring that turns user choices into calls into the bot's logic.
 
-Two screens:
-  * Account status  -- account, current match, SaltyTrack prediction
-  * Start trading   -- configure and run the bot in the foreground
+  python3 src/cli.py                     interactive menu
+  python3 src/cli.py --trade             run the bot (dry-run)
+  python3 src/cli.py --trade --execute   run the bot, placing real bets
+  python3 src/cli.py --watch             just print predictions
 
-Flags remain the scriptable path (used by the background service and tests).
+The bot's own logic lives in bot.py; all SaltyBet interaction lives in
+saltybet.py.
 """
 
 from __future__ import annotations
 
-import json
-import subprocess
+import argparse
 import sys
-from pathlib import Path
 
 import questionary
-from questionary import Choice, Style
+from questionary import Choice
 
-import config as cfg
-from bot import (
-    CONF_RANK, DEFAULT_HEADERS, ensure_balance, fetch_state, get_credentials,
-    get_live_prediction, login, money, read_balance,
-)
+import bot
+from saltybet import ROOT, SaltyBet, money, pools
 
-ROOT = cfg.ROOT
 DIM, BOLD, RESET = "\033[2m", "\033[1m", "\033[0m"
-
-STYLE = Style([
-    ("qmark", "fg:cyan bold"),
-    ("question", "bold"),
-    ("answer", "fg:cyan bold"),
-    ("pointer", "fg:cyan bold"),
-    ("highlighted", "fg:cyan bold"),
-    ("selected", "fg:cyan bold"),
-    ("instruction", "fg:gray"),
-    ("text", ""),
-    ("dim", "fg:gray"),
-])
-
 INSTR = "(↑/↓ move · enter select · ctrl-c cancel)"
 
 
 # ---- prompt helpers ---------------------------------------------------------
 
 
-def _prefer(choices: list, prefer):
-    """Move the matching choice to the front and tag it '(saved)'.
+def choose(message: str, choices: list):
+    """A questionary select.
 
-    The cursor starts on the first entry, so this is how we put the pointer
-    on a saved value without marking anything as questionary's 'selected'.
+    We pass no `default` and no custom style: questionary renders a choice
+    matching `default` in reverse video (its own radio-list behaviour) and
+    marks the cursor with the '»' pointer, so the cursor is the only
+    indicator that moves.
     """
-    if prefer is None:
-        return choices
-    out, chosen = [], None
-    for c in choices:
-        val = c.value if isinstance(c, Choice) else c
-        if val == prefer and chosen is None:
-            if isinstance(c, Choice) and isinstance(c.title, str):
-                chosen = Choice(title=f"{c.title} (saved)", value=c.value,
-                                description=c.description)
-            else:
-                chosen = c
-        else:
-            out.append(c)
-    return [chosen] + out if chosen is not None else choices
-
-
-def choose(message: str, choices: list, prefer=None):
-    """questionary select.
-
-    We deliberately do NOT pass `default=`: questionary renders the default
-    choice with the 'selected' style, and its renderer checks `selected`
-    *before* `pointed_at` -- so the default keeps a permanent highlight even
-    after the cursor moves away. With no default, exactly one choice is
-    highlighted and it always follows the cursor. To start on a saved value
-    we pass `prefer` and reorder instead.
-    """
-    choices = _prefer(choices, prefer)
-    ans = questionary.select(message, choices=choices, style=STYLE,
-                             instruction=INSTR).ask()
+    ans = questionary.select(message, choices=choices, instruction=INSTR).ask()
     if ans is None:
         raise KeyboardInterrupt
     return ans
 
 
 def confirm(message: str, default: bool = True) -> bool:
-    ans = questionary.confirm(message, default=default, style=STYLE).ask()
+    ans = questionary.confirm(message, default=default).ask()
     if ans is None:
         raise KeyboardInterrupt
     return ans
 
 
 def prompt_text(message: str, default: str = "", validate=None) -> str:
-    ans = questionary.text(message, default=default, validate=validate,
-                           style=STYLE).ask()
+    ans = questionary.text(message, default=default, validate=validate).ask()
     if ans is None:
         raise KeyboardInterrupt
     return ans
@@ -117,48 +74,28 @@ def header(title: str) -> None:
     print(f"\n{BOLD}=== {title} ==={RESET}")
 
 
-# ---- session ----------------------------------------------------------------
+# ---- screens ----------------------------------------------------------------
 
 
-def session():
-    """Log in and return (requests session, creds, account state)."""
-    import requests
-    creds = get_credentials()
-    s = requests.Session()
-    s.headers.update(DEFAULT_HEADERS)
-    res = login(s, creds)
-    if not res.ok:
-        print(f"  {BOLD}login failed:{RESET} {res.detail}")
-        print("  check the credentials in .env")
-        return None, None, None
-    return s, creds, read_balance(s)
-
-
-# ---- screen: account status -------------------------------------------------
-
-
-def screen_status() -> None:
+def screen_status(sb: SaltyBet) -> None:
     header("Account status")
-    s, creds, st = session()
-    if s is None:
-        return
-
+    st = sb.account()
     print(f"  account   : user id {st.user_id or '<unknown>'}")
     print(f"  balance   : {money(st.balance)}")
 
-    state = fetch_state(s)
+    state = sb.state()
     if not state:
         print("  match     : (state unavailable)")
         return
     p1, p2 = state.get("p1name", ""), state.get("p2name", "")
     print(f"  match     : {p1} [RED] vs {p2} [BLUE]   status={state.get('status')}")
-    r_pool, b_pool = state.get("p1total"), state.get("p2total")
-    if r_pool not in (None, "0", 0) and b_pool not in (None, "0", 0):
-        print(f"  pools     : RED ${r_pool}   BLUE ${b_pool}")
+    r_pool, b_pool = pools(state)
+    if r_pool and b_pool:
+        print(f"  pools     : RED ${r_pool:,}   BLUE ${b_pool:,}")
     if state.get("remaining"):
         print(f"  remaining : {state['remaining']}")
 
-    pred = get_live_prediction(p1, p2)
+    pred = sb.prediction(p1, p2)
     if isinstance(pred, dict) and pred.get("suggestion"):
         pick = pred["suggestion"]
         pick_name = p1 if pick == "red" else p2
@@ -179,23 +116,8 @@ def screen_status() -> None:
         print(f"  prediction: unavailable ({why})")
 
 
-# ---- screen: start trading --------------------------------------------------
-
-
-def screen_trade_foreground() -> None:
+def screen_trade(sb: SaltyBet) -> None:
     header("Start trading (foreground)")
-    settings = cfg.load()
-    saved = cfg.CONFIG_PATH.exists()
-
-    if saved:
-        print(f"  Using saved defaults ({cfg.CONFIG_PATH}):")
-        print(f"    min_confidence={settings.min_confidence}  "
-              f"wager_frac={settings.wager_frac}  "
-              f"max_bet={settings.max_bet}  "
-              f"interval={settings.interval}s")
-        print(f"  {DIM}Each prompt starts on its saved value -- press enter to keep it.{RESET}\n")
-    else:
-        print(f"  {DIM}No saved defaults yet (config/settings.json).{RESET}\n")
 
     mode = choose("Mode:", [
         Choice(title="Dry run", value=False,
@@ -203,60 +125,44 @@ def screen_trade_foreground() -> None:
         Choice(title="LIVE", value=True,
                description="place real bets (play money, but SaltyBet ToS risk)"),
     ])
-    # Mode is never persisted: we don't want a saved file to silently re-arm
-    # real bets, so it always starts on Dry run.
+    # LIVE is deliberately second: the cursor starts on Dry run, so real bets
+    # are never one stray Enter away.
     execute = bool(mode)
 
-    settings.min_confidence = choose(
+    # Strongest filter first, so the cursor starts on the safest choice.
+    min_confidence = choose(
         "Minimum confidence to bet:",
-        [Choice(title=c, value=c) for c in CONF_RANK.keys()],
-        prefer=settings.min_confidence)
+        [Choice(title=c, value=c) for c in ("high", "medium", "low")])
 
-    settings.wager_frac = prompt_number(
-        "Wager per bet (fraction of balance, e.g. 0.02 = 2%):", settings.wager_frac)
-    settings.max_bet = int(prompt_number(
-        "Max bet per match (Salty Bucks):", settings.max_bet, int))
-    settings.interval = int(prompt_number(
-        "Poll interval (seconds):", settings.interval, int))
+    wager_frac = prompt_number(
+        "Wager per bet (fraction of balance, e.g. 0.02 = 2%):", bot.DEFAULTS["wager_frac"])
+    max_bet = int(prompt_number(
+        "Max bet per match (Salty Bucks):", bot.DEFAULTS["max_bet"], int))
+    interval = int(prompt_number(
+        "Poll interval (seconds):", bot.DEFAULTS["interval"], int))
 
-    errs = settings.validate()
-    if errs:
-        for e in errs:
-            print(f"  invalid: {e}")
+    if not (0 < wager_frac <= 1) or max_bet < 1 or interval < 1:
+        print("  invalid values -- aborting")
         return
 
-    if confirm("Save these as defaults?", default=True):
-        p = cfg.save(settings)
-        print(f"  saved -> {p}")
-    else:
-        print(f"  {DIM}not saved -- using them for this run only{RESET}")
-
     print(f"\n{BOLD}starting bot (Ctrl-C to stop){RESET}\n")
-    cmd = [sys.executable, str(ROOT / "src" / "bot.py"), "--trade",
-           "--interval", str(settings.interval),
-           "--min-confidence", settings.min_confidence,
-           "--wager-frac", str(settings.wager_frac),
-           "--max-bet", str(settings.max_bet)]
-    if execute:
-        cmd.append("--execute")
-    print(f"{DIM}$ {' '.join(cmd)}{RESET}\n")
-    try:
-        subprocess.run(cmd, cwd=str(ROOT))
-    except KeyboardInterrupt:
-        print()
+    bot.run_trade(sb, execute=execute, wager_frac=wager_frac, max_bet=max_bet,
+                  min_conf=min_confidence, interval=interval)
 
 
-# ---- main menu --------------------------------------------------------------
+# ---- interactive menu --------------------------------------------------------
 
 
-def main_menu() -> int:
+def menu() -> int:
+    sb = SaltyBet()
+    res = sb.login()
+    if not res.ok:
+        print(f"  {BOLD}login failed:{RESET} {res.detail}")
+        print("  check the credentials in .env")
+        return 1
+
     while True:
-        try:
-            s, creds, st = session()
-            bal = money(st.balance) if st else "unknown"
-        except Exception:
-            bal = "unknown"
-
+        bal = money(sb.balance())
         print(f"\n{BOLD}SaltyBet Bot{RESET}  {DIM}(balance {bal}){RESET}")
         action = choose("What do you want to do?", [
             Choice(title="Account status", value="status",
@@ -268,9 +174,9 @@ def main_menu() -> int:
 
         try:
             if action == "status":
-                screen_status()
+                screen_status(sb)
             elif action == "trade":
-                screen_trade_foreground()
+                screen_trade(sb)
             elif action == "quit":
                 return 0
         except KeyboardInterrupt:
@@ -281,9 +187,54 @@ def main_menu() -> int:
             return 0
 
 
-def main() -> int:
-    try:
-        return main_menu()
-    except KeyboardInterrupt:
-        print("\nbye")
+# ---- argument parsing -------------------------------------------------------
+
+
+def build_parser() -> argparse.ArgumentParser:
+    ap = argparse.ArgumentParser(
+        description="SaltyBet bot. Run with no arguments for the interactive menu.")
+    ap.add_argument("--verbose", action="store_true")
+    ap.add_argument("--watch", action="store_true", help="poll and print predictions")
+    ap.add_argument("--trade", action="store_true", help="run the bot (dry-run unless --execute)")
+    ap.add_argument("--execute", action="store_true", help="actually place bets (with --trade)")
+    ap.add_argument("--wager-frac", type=float, default=bot.DEFAULTS["wager_frac"])
+    ap.add_argument("--max-bet", type=int, default=bot.DEFAULTS["max_bet"])
+    ap.add_argument("--min-confidence", choices=["low", "medium", "high"],
+                    default=bot.DEFAULTS["min_confidence"])
+    ap.add_argument("--log", default=str(ROOT / "logs" / "decisions.jsonl"))
+    ap.add_argument("--interval", type=int, default=bot.DEFAULTS["interval"])
+    ap.add_argument("--menu", action="store_true", help="force the interactive menu")
+    return ap
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = build_parser().parse_args(argv)
+
+    # No mode selected -> interactive menu.
+    if args.menu or not (args.trade or args.watch):
+        return menu()
+
+    sb = SaltyBet(verbose=args.verbose)
+    res = sb.login()
+    if not res.ok:
+        print(f"login: FAILED ({res.detail})")
+        return 1
+
+    if args.trade:
+        bot.run_trade(sb, execute=args.execute, wager_frac=args.wager_frac,
+                      max_bet=args.max_bet, min_conf=args.min_confidence,
+                      log_path=args.log, interval=args.interval, verbose=args.verbose)
         return 0
+
+    if args.watch:
+        bot.run_watch(sb, interval=args.interval, verbose=args.verbose)
+        return 0
+
+    st = sb.account()
+    print(f"user id: {st.user_id or '<unknown>'}")
+    print(f"balance: {money(st.balance)}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

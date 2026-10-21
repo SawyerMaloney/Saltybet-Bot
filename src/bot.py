@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 """
-salty_bet_bot.py  --  SaltyBet auth + balance + match polling + dry-run trading.
+bot.py  --  the bot's policy: when to bet, how much, and what to log.
 
-Modes
-  (default)     login, print balance
-  --watch       poll matches, print SaltyTrack predictions
-  --trade       trading loop, DRY-RUN BY DEFAULT (logs would-be bets); add
-                --execute to actually place them.
+This module has no CLI concerns (no argparse) and no HTTP details (those
+live in saltybet.py). Everything here takes a SaltyBet client and does the
+bot's work, so it can be driven from the CLI, from a test, or from a
+background runner without shelling out.
 
 Trading rule (the "skip-based" strategy validated by backtest):
   bet the SaltyTrack pick ONLY when confidence is high (and not abstain),
@@ -19,260 +18,31 @@ logged with the reason, so skipped matches can be audited later.
 
 from __future__ import annotations
 
-import argparse
 import json
-import os
-import re
-import sys
 import time
-from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
-import requests
+from saltybet import (
+    CONF_RANK, ROOT, STATE_URL, SaltyBet, money, pools, prediction_for,
+)
 
-BASE = "https://www.saltybet.com"
-LOGIN_URL = f"{BASE}/authenticate?signin=1"
-HOME_URL = f"{BASE}/"
-STATE_URL = f"{BASE}/state.json"
-BET_URL = f"{BASE}/ajax_place_bet.php"
-SALTYTRACK_URL = "https://saltytrack.com/api/current-match"
-MATCHUP_URL = "https://saltytrack.com/api/matchup"
-
-DEFAULT_HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-        "(KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
-    ),
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    "Accept-Language": "en-US,en;q=0.9",
-    "DNT": "1",
+# The bot's defaults. cli.py seeds its command-line flags from these.
+DEFAULTS = {
+    "min_confidence": "high",
+    "wager_frac": 0.02,
+    "max_bet": 5000,
+    "interval": 5,
 }
-
-CONF_RANK = {"low": 1, "medium": 2, "high": 3}
-
-ROOT = Path(__file__).resolve().parent.parent
-
-
-# ---- .env loading -----------------------------------------------------------
-
-
-def load_env(path: str | None = None) -> dict[str, str]:
-    path = path or str(ROOT / ".env")
-    env: dict[str, str] = {}
-    if not os.path.exists(path):
-        return env
-    with open(path, "r", encoding="utf-8") as fh:
-        for raw in fh:
-            line = raw.strip()
-            if not line or line.startswith("#") or "=" not in line:
-                continue
-            if line.startswith("export "):
-                line = line[len("export "):]
-            key, _, value = line.partition("=")
-            if key.strip():
-                env[key.strip()] = value.strip().strip('"').strip("'")
-    return env
-
-
-@dataclass
-class Credentials:
-    username: str
-    password: str
-
-
-def mask(value: str, keep: int = 2) -> str:
-    if not value:
-        return "<empty>"
-    return value[:keep] + "*" * max(0, len(value) - keep)
-
-
-def get_credentials(verbose: bool = False) -> Credentials:
-    env = load_env()
-    username = os.environ.get("SALTY_BET_USERNAME") or env.get("SALTY_BET_USERNAME", "")
-    password = os.environ.get("SALTY_BET_PASSWORD") or env.get("SALTY_BET_PASSWORD", "")
-    if not username or not password:
-        raise SystemExit("Missing SALTY_BET_USERNAME / SALTY_BET_PASSWORD in .env")
-    if verbose:
-        print(f"[env] loaded credentials for user {mask(username)}")
-    return Credentials(username, password)
-
-
-# ---- auth / balance ---------------------------------------------------------
-
-
-@dataclass
-class LoginResult:
-    ok: bool
-    detail: str
-    location: str = ""
-
-
-def login(session: requests.Session, creds: Credentials, verbose: bool = False) -> LoginResult:
-    session.get(LOGIN_URL, timeout=20)
-    resp = session.post(
-        LOGIN_URL,
-        headers={"Referer": LOGIN_URL, "Content-Type": "application/x-www-form-urlencoded"},
-        data={"email": creds.username, "pword": creds.password, "authenticate": "signin"},
-        allow_redirects=False,
-        timeout=20,
-    )
-    location = resp.headers.get("location", "")
-    if verbose:
-        print(f"[login] HTTP {resp.status_code} -> {location}")
-    if "error=" in location:
-        return LoginResult(False, location.split("error=", 1)[-1].replace("+", " "), location)
-    if resp.status_code in (301, 302, 303) or "PHPSESSID" in session.cookies:
-        return LoginResult(True, "authenticated", location)
-    return LoginResult(False, f"unexpected HTTP {resp.status_code}", location)
-
-
-@dataclass
-class AccountState:
-    user_id: str
-    balance: int | None
-    balance_raw: str
-
-
-def read_balance(session: requests.Session, verbose: bool = False) -> AccountState:
-    html = session.get(HOME_URL, timeout=20).text
-    uid = re.search(r'id="u"[^>]*value\s*=\s*"([^"]*)"', html)
-    span = re.search(r'id="balance">([\d,]+)</span>', html)
-    hidden = re.search(r'id="b"[^>]*value\s*=\s*"([\d,]*)', html)
-    raw = span.group(1) if span else (hidden.group(1).strip() if hidden and hidden.group(1).strip() else "")
-    bal: int | None = None
-    if raw:
-        try:
-            bal = int(raw.replace(",", ""))
-        except ValueError:
-            bal = None
-    return AccountState(uid.group(1).strip() if uid else "", bal, raw)
-
-
-def money(balance: int | None) -> str:
-    return f"${balance:,}" if balance is not None else "unknown"
-
-
-def ensure_balance(session, creds, verbose=False) -> int | None:
-    """Read balance; if the session looks dead, re-auth once and retry."""
-    st = read_balance(session, verbose=False)
-    if st.balance is None and not st.user_id:
-        if verbose:
-            print("[auth] session looks dead; re-authenticating")
-        if login(session, creds, verbose=verbose).ok:
-            st = read_balance(session, verbose=False)
-    return st.balance
-
-
-# ---- market data ------------------------------------------------------------
-
-
-def fetch_state(session: requests.Session) -> dict | None:
-    try:
-        d = session.get(STATE_URL, timeout=15).json()
-        if isinstance(d, dict) and "status" in d:
-            return d
-    except (requests.RequestException, ValueError):
-        return None
-    return None
-
-
-def _get_json(url, params=None):
-    try:
-        return requests.get(url, params=params, timeout=15, headers=DEFAULT_HEADERS).json()
-    except (requests.RequestException, ValueError):
-        return None
-
-
-def _prediction_valid(pred, p1, p2) -> bool:
-    if not isinstance(pred, dict):
-        return False
-    red = (pred.get("red") or {}).get("name", "")
-    blue = (pred.get("blue") or {}).get("name", "")
-    if not red or not blue:
-        return False
-    if red.strip().lower() != p1.strip().lower() or blue.strip().lower() != p2.strip().lower():
-        return False
-    return pred.get("suggestion") in ("red", "blue")
-
-
-def get_live_prediction(p1: str, p2: str) -> dict | None:
-    """Live prediction for the open match.
-
-    /api/current-match works during matchmaking but returns only
-    {"status":"tournament"} during brackets. Fall back to /api/matchup by
-    name, which reproduces the recorded live prediction (verified).
-    """
-    cur = _get_json(SALTYTRACK_URL)
-    if _prediction_valid(cur, p1, p2):
-        return cur
-    matchup = _get_json(MATCHUP_URL, {"red": p1, "blue": p2})
-    if _prediction_valid(matchup, p1, p2):
-        return matchup
-    return cur or matchup
-
-
-def prediction_for(pred: dict | None, p1: str, p2: str) -> tuple[str, str]:
-    """Returns (suggestion, reason); suggestion '' on failure."""
-    if not isinstance(pred, dict):
-        return "", "no_prediction"
-    if _prediction_valid(pred, p1, p2):
-        return pred["suggestion"], "ok"
-    red = (pred.get("red") or {}).get("name", "")
-    blue = (pred.get("blue") or {}).get("name", "")
-    if not red or not blue:
-        return "", f"not_active({pred.get('status')})"
-    if red.strip().lower() != p1.strip().lower() or blue.strip().lower() != p2.strip().lower():
-        return "", "name_mismatch"
-    return "", "no_suggestion"
-
-
-def place_bet(session, creds, side_player: str, wager: int, verbose=False) -> tuple[bool, str]:
-    """side_player in {'player1','player2'}; success == body ends with '1'."""
-
-    def _do() -> str:
-        r = session.post(
-            BET_URL,
-            headers={
-                "Referer": f"{BASE}/",
-                "Origin": BASE,
-                "X-Requested-With": "XMLHttpRequest",
-                "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-            },
-            data={"selectedplayer": side_player, "wager": str(wager)},
-            timeout=20,
-        )
-        return r.text.strip()
-
-    body = _do()
-    if body.endswith("1"):
-        return True, body
-    if verbose:
-        print(f"[bet] failed (body={body!r}); re-auth + retry")
-    if login(session, creds, verbose=verbose).ok:
-        body = _do()
-        if body.endswith("1"):
-            return True, body
-    return False, body
 
 
 # ---- trading loop -----------------------------------------------------------
 
 
-def _pools(state: dict) -> tuple[int, int]:
-    def num(x):
-        try:
-            return int(str(x).replace(",", ""))
-        except (ValueError, TypeError):
-            return 0
-    return num(state.get("p1total")), num(state.get("p2total"))
-
-
 class Trader:
-    def __init__(self, session, creds, execute=False, wager_frac=0.02, max_bet=5000,
+    def __init__(self, client: SaltyBet, execute=False, wager_frac=0.02, max_bet=5000,
                  min_conf="high", log_path=None, interval=5, verbose=False):
-        self.session = session
-        self.creds = creds
+        self.client = client
         self.execute = execute
         self.wager_frac = wager_frac
         self.max_bet = max_bet
@@ -362,11 +132,11 @@ class Trader:
 
     def on_open(self, state: dict) -> None:
         p1, p2 = state.get("p1name", ""), state.get("p2name", "")
-        pred = get_live_prediction(p1, p2)
+        pred = self.client.prediction(p1, p2)
         suggestion, reason = prediction_for(pred, p1, p2)
         conf = (pred or {}).get("confidence")
         abstain = bool((pred or {}).get("abstain"))
-        balance = ensure_balance(self.session, self.creds, verbose=self.verbose)
+        balance = self.client.balance()
 
         decision, side_player, wager, chosen = "skip", None, 0, ""
         if reason != "ok":
@@ -384,7 +154,7 @@ class Trader:
             decision = "would_bet" if not self.execute else "bet"
 
         if self.execute and decision == "bet":
-            ok, body = place_bet(self.session, self.creds, side_player, wager, verbose=self.verbose)
+            ok, body = self.client.place_bet(side_player, wager)
             decision = "bet_placed" if ok else "bet_failed"
             if not ok:
                 chosen = f"{chosen}|body={body[:20]}"
@@ -422,7 +192,7 @@ class Trader:
         red_won = str(state.get("status")) == "1"
         winner = p1 if red_won else p2
         winner_color = "RED" if red_won else "BLUE"
-        p1_pool, p2_pool = _pools(state)
+        p1_pool, p2_pool = pools(state)
         won = None
         profit = None
         if pend["wager"] > 0 and pend["side_player"]:
@@ -478,7 +248,7 @@ class Trader:
                   f"(wager ${restored['wager']}, decision {restored['decision']})", flush=True)
 
         while True:
-            state = fetch_state(self.session)
+            state = self.client.state()
             if state is None:
                 time.sleep(self.interval)
                 continue
@@ -515,13 +285,14 @@ def format_prediction(pred: dict | None) -> str:
 
 
 class MatchWatcher:
-    def __init__(self, session, creds, verbose=False):
-        self.session, self.creds, self.verbose = session, creds, verbose
+    def __init__(self, client: SaltyBet, verbose=False):
+        self.client = client
+        self.verbose = verbose
         self.last_key = None
         self.prev_status = None
 
     def balance(self) -> str:
-        return money(ensure_balance(self.session, self.creds, verbose=self.verbose))
+        return money(self.client.balance())
 
     def step(self, state: dict) -> list[str]:
         lines = []
@@ -530,7 +301,7 @@ class MatchWatcher:
         key = f"{p1}|{p2}"
         is_result = status in ("1", "2")
         if not is_result and (status == "open" or self.last_key is None) and key != self.last_key:
-            pred = get_live_prediction(p1, p2)
+            pred = self.client.prediction(p1, p2)
             self.last_key = key
             lines.append(f"Match started: {p1} [RED] vs {p2} [BLUE]. "
                          f"Saltytrack prediction: {format_prediction(pred)}. | balance: {self.balance()}")
@@ -538,7 +309,7 @@ class MatchWatcher:
             red_won = status == "1"
             winner = p1 if red_won else p2
             color = "RED" if red_won else "BLUE"
-            r_pool, b_pool = _pools(state)
+            r_pool, b_pool = pools(state)
             lines.append(f"Match ended: {p1} [RED] vs {p2} [BLUE] -> WINNER: {winner} [{color}]. "
                          f"pools RED=${r_pool:,} BLUE=${b_pool:,} | balance: {self.balance()}")
         self.prev_status = status
@@ -547,106 +318,41 @@ class MatchWatcher:
     def run(self, interval=5):
         print(f"[watch] polling {STATE_URL} every {interval}s")
         while True:
-            state = fetch_state(self.session)
+            state = self.client.state()
             if state is not None:
                 for line in self.step(state):
                     print(line, flush=True)
             time.sleep(interval)
 
 
-# ---- main -------------------------------------------------------------------
+# ---- entry points (called by cli.py) -----------------------------------------
 
 
-def main() -> int:
-    ap = argparse.ArgumentParser(
-        description="SaltyBet bot. Run with no arguments for the interactive menu.")
-    ap.add_argument("--verbose", action="store_true")
-    ap.add_argument("--watch", action="store_true", help="poll and print predictions")
-    ap.add_argument("--trade", action="store_true", help="trading loop (dry-run unless --execute)")
-    ap.add_argument("--execute", action="store_true", help="actually place bets (with --trade)")
-    ap.add_argument("--wager-frac", type=float, default=None)
-    ap.add_argument("--max-bet", type=int, default=None)
-    ap.add_argument("--min-confidence", choices=["low", "medium", "high"], default=None)
-    ap.add_argument("--log", default=None)
-    ap.add_argument("--interval", type=int, default=None)
-    ap.add_argument("--config", default=None, help="settings json (default config/settings.json)")
-    ap.add_argument("--menu", action="store_true", help="force the interactive menu")
-    args = ap.parse_args()
+def run_trade(client: SaltyBet, *, execute: bool = False,
+              wager_frac: float = DEFAULTS["wager_frac"],
+              max_bet: int = DEFAULTS["max_bet"],
+              min_conf: str = DEFAULTS["min_confidence"],
+              log_path: str | None = None,
+              interval: int = DEFAULTS["interval"],
+              verbose: bool = False) -> None:
+    """Run the trading loop until interrupted.
 
-    # No mode selected -> interactive menu.
-    if args.menu or not (args.trade or args.watch):
-        try:
-            import cli
-            return cli.main()
-        except ImportError:
-            print("interactive menu needs 'questionary': pip install questionary")
-            return 1
-
-    # Settings file provides defaults; explicit flags win.
+    execute=False logs what it would bet; execute=True places real bets.
+    """
+    trader = Trader(client, execute=execute, wager_frac=wager_frac,
+                    max_bet=max_bet, min_conf=min_conf, log_path=log_path,
+                    interval=interval, verbose=verbose)
     try:
-        import config as cfg
-        settings = cfg.load(Path(args.config) if args.config else None)
-    except Exception:
-        settings = None
-
-    if settings is not None:
-        if args.wager_frac is None:
-            args.wager_frac = settings.wager_frac
-        if args.max_bet is None:
-            args.max_bet = settings.max_bet
-        if args.min_confidence is None:
-            args.min_confidence = settings.min_confidence
-        if args.interval is None:
-            args.interval = settings.interval
-        if args.log is None:
-            args.log = str(settings.resolved_log_path())
-
-    if args.wager_frac is None:
-        args.wager_frac = 0.02
-    if args.max_bet is None:
-        args.max_bet = 5000
-    if args.min_confidence is None:
-        args.min_confidence = "high"
-    if args.interval is None:
-        args.interval = 5
-    if args.log is None:
-        args.log = str(ROOT / "logs" / "decisions.jsonl")
-
-    creds = get_credentials(verbose=args.verbose)
-    session = requests.Session()
-    session.headers.update(DEFAULT_HEADERS)
-    result = login(session, creds, verbose=args.verbose)
-
-    if args.trade:
-        if not result.ok:
-            print(f"login: FAILED ({result.detail})")
-            return 1
-        try:
-            Trader(session, creds, execute=args.execute, wager_frac=args.wager_frac,
-                   max_bet=args.max_bet, min_conf=args.min_confidence, log_path=args.log,
-                   interval=args.interval, verbose=args.verbose).run()
-        except KeyboardInterrupt:
-            print("\n[trade] stopped")
-        return 0
-
-    if args.watch:
-        if not result.ok:
-            print(f"login: FAILED ({result.detail})")
-            return 1
-        try:
-            MatchWatcher(session, creds, verbose=args.verbose).run(interval=args.interval)
-        except KeyboardInterrupt:
-            print("\n[watch] stopped")
-        return 0
-
-    print(f"login: {'OK' if result.ok else 'FAILED'} ({result.detail})")
-    if not result.ok:
-        return 1
-    st = read_balance(session, verbose=args.verbose)
-    print(f"user id: {st.user_id or '<unknown>'}")
-    print(f"balance: {money(st.balance)}")
-    return 0
+        trader.run()
+    except KeyboardInterrupt:
+        print("\n[trade] stopped")
 
 
-if __name__ == "__main__":
-    sys.exit(main())
+def run_watch(client: SaltyBet, *, interval: int = DEFAULTS["interval"],
+              verbose: bool = False) -> None:
+    """Poll matches and print predictions until interrupted."""
+    watcher = MatchWatcher(client, verbose=verbose)
+    try:
+        watcher.run(interval=interval)
+    except KeyboardInterrupt:
+        print("\n[watch] stopped")

@@ -14,7 +14,9 @@ Two eras live in this repo:
 ```
 .
 ├── src/               # all code
-│   ├── bot.py             live bot / dry-run trader
+│   ├── saltybet.py        the SaltyBet boundary: auth, balance, state, bet
+│   ├── bot.py             the bot's policy: when to bet, how much, what to log
+│   ├── cli.py             the CLI surface: argparse + interactive menu
 │   ├── backtest.py        backtest + walk-forward + bias analysis (shared helpers)
 │   ├── crawl.py           parallel SaltyBoy/SaltyTrack crawler (adaptive rate)
 │   ├── market_model.py    what predicts the market price m
@@ -29,25 +31,25 @@ Two eras live in this repo:
 ## Setup
 
 ```bash
-pip install -r requirements.txt        # just: requests
+pip install -r requirements.txt        # requests + questionary
 # create .env with:
 #   SALTY_BET_USERNAME=...
 #   SALTY_BET_PASSWORD=...
 ```
 
 Every script resolves its own paths from the repo root, so you can run them from
-anywhere: `python3 src/bot.py`, `python3 src/backtest.py`, etc.
+anywhere: `python3 src/cli.py`, `python3 src/backtest.py`, etc.
 
 ## Usage
 
 ### Live bot / dry-run trader
 
 ```bash
-python3 src/bot.py                                 # login + print balance
-python3 src/bot.py --watch                         # poll matches, print predictions
-python3 src/bot.py --trade                         # trading loop, DRY-RUN
-python3 src/bot.py --trade --execute               # actually place bets (high-conf only)
-python3 src/bot.py --trade --wager-frac 0.02 --max-bet 5000
+python3 src/cli.py                                # interactive menu
+python3 src/cli.py --watch                        # poll matches, print predictions
+python3 src/cli.py --trade                        # trading loop, DRY-RUN
+python3 src/cli.py --trade --execute              # actually place bets (high-conf only)
+python3 src/cli.py --trade --wager-frac 0.02 --max-bet 5000
 ```
 
 Decisions are written to `logs/decisions.jsonl`; the human log goes to stdout
@@ -56,12 +58,22 @@ Decisions are written to `logs/decisions.jsonl`; the human log goes to stdout
 Rule: bet the SaltyTrack pick only when `confidence == high` (skip otherwise),
 fixed-fraction sizing, tournaments handled via the `/api/matchup` fallback.
 
+### Layers
+
+- `saltybet.py` — the only module that talks to saltybet.com. `SaltyBet` owns
+  the session, the cookie and the re-auth; callers never touch requests.
+- `bot.py` — pure policy. `run_trade(client, ...)` / `run_watch(client, ...)`
+  take a client, so the bot can be driven from the CLI, a test, or a
+  background runner without shelling out.
+- `cli.py` — all CLI concerns: argparse, the interactive menu, and the wiring
+  that turns choices into calls into `bot.py`.
+
 ### Background / overnight
 
 Run the bot in the background yourself, e.g.:
 
 ```bash
-nohup python3 src/bot.py --trade --interval 5 --min-confidence high \
+nohup python3 src/cli.py --trade --interval 5 --min-confidence high \
       > logs/trade.log 2>&1 &
 ```
 

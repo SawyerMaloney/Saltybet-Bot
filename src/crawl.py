@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-fast_crawl.py -- parallel crawler with a shared, adaptive global rate limiter.
+crawl.py -- parallel crawler with a shared, adaptive global rate limiter.
 
 Why: throughput is bounded by the API's rate limit, not by worker count. N
 workers all pull tokens from ONE limiter, so the global request rate is capped
@@ -9,8 +9,8 @@ toward the base interval. This speeds a crawl up (workers overlap latency)
 without slamming the host.
 
 Usage:
-    python3 fast_crawl.py track --start-page 188 --end-page 520 --workers 6 --interval 1.0
-    python3 fast_crawl.py boy   --start-page 1   --end-page 6660 --workers 8 --interval 0.1
+    python3 src/crawl.py track --start-page 188 --end-page 520 --workers 6 --interval 1.0
+    python3 src/crawl.py boy   --start-page 1   --end-page 6660 --workers 8 --interval 0.1
 """
 
 from __future__ import annotations
