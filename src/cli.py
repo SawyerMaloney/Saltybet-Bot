@@ -36,7 +36,7 @@ STYLE = Style([
     ("answer", "fg:cyan bold"),
     ("pointer", "fg:cyan bold"),
     ("highlighted", "fg:cyan bold"),
-    ("selected", "fg:cyan"),
+    ("selected", "fg:cyan bold"),
     ("instruction", "fg:gray"),
     ("text", ""),
     ("dim", "fg:gray"),
@@ -45,20 +45,44 @@ STYLE = Style([
 INSTR = "(↑/↓ move · enter select · ctrl-c cancel)"
 
 
-def _instr(kind: str) -> str:
-    # Arrow-key hints only make sense for list prompts.
-    return INSTR if kind == "select" else ""
-
-
 # ---- prompt helpers ---------------------------------------------------------
 
 
-def choose(message: str, choices: list, default=None):
-    """questionary select. `default` may be an index or a choice value."""
-    if isinstance(default, int) and 0 <= default < len(choices):
-        default = choices[default].value if isinstance(choices[default], Choice) else choices[default]
-    ans = questionary.select(message, choices=choices, default=default,
-                             style=STYLE, instruction=INSTR).ask()
+def _prefer(choices: list, prefer):
+    """Move the matching choice to the front and tag it '(saved)'.
+
+    The cursor starts on the first entry, so this is how we put the pointer
+    on a saved value without marking anything as questionary's 'selected'.
+    """
+    if prefer is None:
+        return choices
+    out, chosen = [], None
+    for c in choices:
+        val = c.value if isinstance(c, Choice) else c
+        if val == prefer and chosen is None:
+            if isinstance(c, Choice) and isinstance(c.title, str):
+                chosen = Choice(title=f"{c.title} (saved)", value=c.value,
+                                description=c.description)
+            else:
+                chosen = c
+        else:
+            out.append(c)
+    return [chosen] + out if chosen is not None else choices
+
+
+def choose(message: str, choices: list, prefer=None):
+    """questionary select.
+
+    We deliberately do NOT pass `default=`: questionary renders the default
+    choice with the 'selected' style, and its renderer checks `selected`
+    *before* `pointed_at` -- so the default keeps a permanent highlight even
+    after the cursor moves away. With no default, exactly one choice is
+    highlighted and it always follows the cursor. To start on a saved value
+    we pass `prefer` and reorder instead.
+    """
+    choices = _prefer(choices, prefer)
+    ans = questionary.select(message, choices=choices, style=STYLE,
+                             instruction=INSTR).ask()
     if ans is None:
         raise KeyboardInterrupt
     return ans
@@ -178,14 +202,15 @@ def screen_trade_foreground() -> None:
                description="log what it would bet, place no real bets"),
         Choice(title="LIVE", value=True,
                description="place real bets (play money, but SaltyBet ToS risk)"),
-    ], default=0)
+    ])
     # Mode is never persisted: we don't want a saved file to silently re-arm
     # real bets, so it always starts on Dry run.
     execute = bool(mode)
 
     settings.min_confidence = choose(
-        "Minimum confidence to bet:", list(CONF_RANK.keys()),
-        default=list(CONF_RANK.keys()).index(settings.min_confidence))
+        "Minimum confidence to bet:",
+        [Choice(title=c, value=c) for c in CONF_RANK.keys()],
+        prefer=settings.min_confidence)
 
     settings.wager_frac = prompt_number(
         "Wager per bet (fraction of balance, e.g. 0.02 = 2%):", settings.wager_frac)
@@ -239,7 +264,7 @@ def main_menu() -> int:
             Choice(title="Start trading", value="trade",
                    description="configure and run the bot in the foreground"),
             Choice(title="Quit", value="quit", description="exit"),
-        ], default=0)
+        ])
 
         try:
             if action == "status":
