@@ -23,6 +23,7 @@ Two eras live in this repo:
 │       ├── market_model.py    what predicts the market price m
 │       └── policy.py          direct policy classifier
 ├── requirements.txt
+├── TODO.md            # ongoing work
 ├── .env               # secrets (gitignored)
 ├── legacy/            # original Twitch + Elo project
 ├── data/              # sqlite + legacy dumps (gitignored)
