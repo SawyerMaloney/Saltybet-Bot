@@ -472,7 +472,8 @@ class Trader:
         restored = self._load_pending()
         if restored:
             self.pending = restored
-            print(f"[trade] restored outstanding bet from a previous run: "
+            kind = "bet" if restored.get("wager") else "match"
+            print(f"[trade] restored outstanding {kind} from a previous run: "
                   f"{restored['p1']} vs {restored['p2']} "
                   f"(wager ${restored['wager']}, decision {restored['decision']})", flush=True)
 
@@ -557,17 +558,59 @@ class MatchWatcher:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="SaltyBet bot (PoC)")
+    ap = argparse.ArgumentParser(
+        description="SaltyBet bot. Run with no arguments for the interactive menu.")
     ap.add_argument("--verbose", action="store_true")
     ap.add_argument("--watch", action="store_true", help="poll and print predictions")
     ap.add_argument("--trade", action="store_true", help="trading loop (dry-run unless --execute)")
     ap.add_argument("--execute", action="store_true", help="actually place bets (with --trade)")
-    ap.add_argument("--wager-frac", type=float, default=0.02)
-    ap.add_argument("--max-bet", type=int, default=5000)
-    ap.add_argument("--min-confidence", choices=["low", "medium", "high"], default="high")
-    ap.add_argument("--log", default=str(ROOT / "logs" / "decisions.jsonl"))
-    ap.add_argument("--interval", type=int, default=5)
+    ap.add_argument("--wager-frac", type=float, default=None)
+    ap.add_argument("--max-bet", type=int, default=None)
+    ap.add_argument("--min-confidence", choices=["low", "medium", "high"], default=None)
+    ap.add_argument("--log", default=None)
+    ap.add_argument("--interval", type=int, default=None)
+    ap.add_argument("--config", default=None, help="settings json (default config/settings.json)")
+    ap.add_argument("--menu", action="store_true", help="force the interactive menu")
     args = ap.parse_args()
+
+    # No mode selected -> interactive menu.
+    if args.menu or not (args.trade or args.watch):
+        try:
+            import cli
+            return cli.main()
+        except ImportError:
+            print("interactive menu needs 'questionary': pip install questionary")
+            return 1
+
+    # Settings file provides defaults; explicit flags win.
+    try:
+        import config as cfg
+        settings = cfg.load(Path(args.config) if args.config else None)
+    except Exception:
+        settings = None
+
+    if settings is not None:
+        if args.wager_frac is None:
+            args.wager_frac = settings.wager_frac
+        if args.max_bet is None:
+            args.max_bet = settings.max_bet
+        if args.min_confidence is None:
+            args.min_confidence = settings.min_confidence
+        if args.interval is None:
+            args.interval = settings.interval
+        if args.log is None:
+            args.log = str(settings.resolved_log_path())
+
+    if args.wager_frac is None:
+        args.wager_frac = 0.02
+    if args.max_bet is None:
+        args.max_bet = 5000
+    if args.min_confidence is None:
+        args.min_confidence = "high"
+    if args.interval is None:
+        args.interval = 5
+    if args.log is None:
+        args.log = str(ROOT / "logs" / "decisions.jsonl")
 
     creds = get_credentials(verbose=args.verbose)
     session = requests.Session()

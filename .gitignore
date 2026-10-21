@@ -19,3 +19,6 @@ nohup.out
 
 # --- captured requests / secrets ---
 place_bet.txt
+
+# local settings written by the CLI
+config/
