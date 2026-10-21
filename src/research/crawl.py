@@ -24,7 +24,7 @@ import time
 
 import requests
 
-from backtest import DB, db as _db
+from .backtest import DB, db as _db
 
 try:
     _db().close()  # ensure schema exists

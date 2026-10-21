@@ -23,7 +23,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-from saltybet import (
+from .saltybet import (
     CONF_RANK, ROOT, STATE_URL, SaltyBet, money, pools, prediction_for,
 )
 

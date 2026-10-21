@@ -34,7 +34,7 @@ from pathlib import Path
 
 import requests
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parent.parent.parent   # repo root
 DB = str(ROOT / "data" / "backtest.sqlite")
 TRACK_URL = "https://saltytrack.com/api/recent"
 BOY_URL = "https://salty-boy.com/api/match/"

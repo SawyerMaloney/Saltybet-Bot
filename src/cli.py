@@ -5,10 +5,13 @@ cli.py -- the command-line surface for the SaltyBet bot.
 Owns everything CLI-shaped: argument parsing, the interactive menu, and the
 wiring that turns user choices into calls into the bot's logic.
 
-  python3 src/cli.py                     interactive menu
-  python3 src/cli.py --trade             run the bot (dry-run)
-  python3 src/cli.py --trade --execute   run the bot, placing real bets
-  python3 src/cli.py --watch             just print predictions
+  python3 -m src.cli                     interactive menu
+  python3 -m src.cli --trade             run the bot (dry-run)
+  python3 -m src.cli --trade --execute   run the bot, placing real bets
+  python3 -m src.cli --watch             just print predictions
+
+(Run from the repo root -- the project is a package, so modules are invoked
+with -m.)
 
 The bot's own logic lives in bot.py; all SaltyBet interaction lives in
 saltybet.py.
@@ -22,8 +25,8 @@ import sys
 import questionary
 from questionary import Choice
 
-import bot
-from saltybet import ROOT, SaltyBet, money, pools
+from . import bot
+from .saltybet import ROOT, SaltyBet, money, pools
 
 DIM, BOLD, RESET = "\033[2m", "\033[1m", "\033[0m"
 INSTR = "(↑/↓ move · enter select · ctrl-c cancel)"

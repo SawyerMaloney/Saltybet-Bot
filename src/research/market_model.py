@@ -21,7 +21,7 @@ from __future__ import annotations
 import math
 import sqlite3
 
-from backtest import DB, ols
+from .backtest import DB, ols
 
 
 def r2(X, y, beta):

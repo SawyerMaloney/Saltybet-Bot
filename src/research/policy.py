@@ -22,7 +22,7 @@ from __future__ import annotations
 import math
 import sqlite3
 
-from backtest import DB, load_joined, ols
+from .backtest import DB, load_joined, ols
 
 
 def feats(r, with_meta=True):
