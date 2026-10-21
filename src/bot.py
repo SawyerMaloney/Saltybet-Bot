@@ -282,6 +282,75 @@ class Trader:
         self.interval = interval
         self.verbose = verbose
         self.pending: dict | None = None
+        # Persisted so a restart can't silently lose an outstanding bet.
+        self.pending_path = Path(self.log_path).parent / "pending.json"
+
+    # -- outstanding-bet bookkeeping ------------------------------------
+
+    def _save_pending(self) -> None:
+        if not self.pending or self.pending.get("resolved"):
+            return
+        try:
+            self.pending_path.parent.mkdir(parents=True, exist_ok=True)
+            tmp = self.pending_path.with_suffix(".tmp")
+            tmp.write_text(json.dumps(self.pending))
+            tmp.replace(self.pending_path)
+        except OSError:
+            pass
+
+    def _load_pending(self) -> dict | None:
+        try:
+            data = json.loads(self.pending_path.read_text())
+        except (OSError, ValueError):
+            return None
+        if not data.get("p1") or not data.get("p2"):
+            return None
+        data["resolved"] = False
+        return data
+
+    def _clear_pending(self) -> None:
+        try:
+            self.pending_path.unlink(missing_ok=True)
+        except OSError:
+            pass
+
+    @staticmethod
+    def _pick_desc(pend: dict) -> str:
+        if pend.get("suggestion") == "red":
+            return f"Red ({pend['p1']})"
+        if pend.get("suggestion") == "blue":
+            return f"Blue ({pend['p2']})"
+        return "none"
+
+    def note_missed_resolve(self, observed: str) -> None:
+        """Our pending match's result state was never observed.
+
+        Two ways this happens:
+          * the '1'/'2' state lasted less than our poll interval, so we went
+            straight from 'locked' to the next match being 'open';
+          * the process restarted while the bet was outstanding, losing the
+            in-memory state.
+
+        We cannot know who won or what the pools were, so we record the gap
+        rather than guessing.
+        """
+        pend = self.pending
+        if not pend or pend.get("resolved"):
+            return
+        pend["resolved"] = True
+        self._clear_pending()
+        p1, p2 = pend["p1"], pend["p2"]
+        pick_desc = self._pick_desc(pend)
+        self.log(
+            "resolve_missed",
+            f"{p1} [RED] vs {p2} [BLUE] -> RESULT NOT OBSERVED | "
+            f"our pick={pick_desc} decision={pend['decision'].upper()} "
+            f"wager=${pend['wager']} | missed: {observed} | outcome UNKNOWN",
+            p1=p1, p2=p2, red_name=p1, blue_name=p2,
+            decision=pend["decision"], side=pend["side_player"] or "-",
+            pick=pick_desc, wager=pend["wager"], won=None, profit=None,
+            missed=True, missed_reason="result_state_never_observed", observed=observed,
+        )
 
     def log(self, event: str, message: str, **fields) -> None:
         """Write a structured record to jsonl and a readable line to stdout."""
@@ -326,6 +395,7 @@ class Trader:
             "side_player": side_player, "wager": wager, "decision": decision,
             "resolved": False,
         }
+        self._save_pending()
 
         # human-readable summary
         pick = "-"
@@ -363,6 +433,7 @@ class Trader:
             if pend["decision"] in ("would_bet", "bet_placed"):
                 profit = round(pend["wager"] * (opp / own), 2) if won and own else (-pend["wager"] if not won else None)
         pend["resolved"] = True
+        self._clear_pending()
 
         # what did we pick, and did it win?
         if pend["suggestion"] == "red":
@@ -395,6 +466,16 @@ class Trader:
         mode = "EXECUTE" if self.execute else "DRY-RUN"
         print(f"[trade] {mode} | min_conf={list(CONF_RANK)[self.min_rank-1]} "
               f"wager_frac={self.wager_frac} max_bet={self.max_bet} log={self.log_path}")
+
+        # A previous run may have left a bet outstanding. Carry it over so we
+        # can notice that its result was never observed (and log that).
+        restored = self._load_pending()
+        if restored:
+            self.pending = restored
+            print(f"[trade] restored outstanding bet from a previous run: "
+                  f"{restored['p1']} vs {restored['p2']} "
+                  f"(wager ${restored['wager']}, decision {restored['decision']})", flush=True)
+
         while True:
             state = fetch_state(self.session)
             if state is None:
@@ -402,12 +483,21 @@ class Trader:
                 continue
             status = str(state.get("status", "")).strip()
             key = f"{state.get('p1name','')}|{state.get('p2name','')}"
+
             if status == "open":
-                if self.pending is None or self.pending["key"] != key or self.pending["resolved"]:
+                if self.pending and not self.pending.get("resolved") and self.pending["key"] != key:
+                    # The previous match's result state was never observed.
+                    self.note_missed_resolve(f"next match opened ({key})")
+                if self.pending is None or self.pending["key"] != key or self.pending.get("resolved"):
                     self.on_open(state)
+
             elif status in ("1", "2"):
+                if self.pending and not self.pending.get("resolved") and self.pending["key"] != key:
+                    # A result arrived, but for a different match than ours.
+                    self.note_missed_resolve(f"result observed for a different match ({key})")
                 if self.pending and self.pending["key"] == key:
                     self.on_resolve(state)
+
             time.sleep(self.interval)
 
 
