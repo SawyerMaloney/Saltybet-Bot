@@ -1,2 +1,21 @@
-.venv
+# --- python / venv ---
+.venv/
+__pycache__/
+*.pyc
+
+# --- secrets ---
 .env
+
+# --- generated data (large / reproducible) ---
+data/
+*.sqlite
+
+# --- runtime logs ---
+logs/
+*.log
+*.jsonl
+nohup.out
+*.pid
+
+# --- captured requests / secrets ---
+place_bet.txt
