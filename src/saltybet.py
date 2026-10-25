@@ -196,29 +196,38 @@ class SaltyBet:
     # -- reads -----------------------------------------------------------
 
     def account(self) -> AccountState:
-        """The logged-in account: user id and balance, read from the home page."""
+        """The logged-in account: user id and balance, read from the home page.
+
+        A logged-out page still renders `id="balance"` with a value of 0, so a
+        balance is only reported when the page carries a user id. Without one,
+        the balance is None (unknown) rather than a misleading 0 -- otherwise a
+        dead session is indistinguishable from an empty account.
+        """
         html = self.session.get(HOME_URL, timeout=20).text
         uid = re.search(r'id="u"[^>]*value\s*=\s*"([^"]*)"', html)
         span = re.search(r'id="balance">([\d,]+)</span>', html)
         hidden = re.search(r'id="b"[^>]*value\s*=\s*"([\d,]*)', html)
         raw = span.group(1) if span else (
             hidden.group(1).strip() if hidden and hidden.group(1).strip() else "")
+        user_id = uid.group(1).strip() if uid else ""
         bal: int | None = None
-        if raw:
+        if user_id and raw:
             try:
                 bal = int(raw.replace(",", ""))
             except ValueError:
                 bal = None
-        return AccountState(uid.group(1).strip() if uid else "", bal, raw)
+        return AccountState(user_id, bal, raw)
 
     def balance(self) -> int | None:
         """Current balance; re-authenticates once if the session has died."""
         st = self.account()
-        if st.balance is None and not st.user_id:
+        if not st.user_id:
             if self.verbose:
                 print("[auth] session looks dead; re-authenticating")
             if self.login().ok:
                 st = self.account()
+        if not st.user_id:
+            return None
         return st.balance
 
     def state(self) -> dict | None:
